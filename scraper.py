@@ -3,6 +3,7 @@ from turtle import pos
 from typing import Type
 import requests
 from bs4 import BeautifulSoup
+from translate import Translator
 
 def get_element(parent, selector, attribute=None, return_list= False):
     try:
@@ -28,6 +29,10 @@ opinion_elements = {
             "useless":     ["button.vote-no > span"]
 }            
 
+to_lang = "en"
+from_lang = "pl"
+translator = Translator(to_lang=to_lang,from_lang=from_lang)
+
 product_id = input("Please enter a product's id: ")
 
 url = f"https://www.ceneo.pl/{product_id}#tab=reviews"
@@ -45,6 +50,15 @@ while (url):
             key: get_element(opinion, *values)
             for key, values in opinion_elements.items()
         }
+        single_opinion["opinion_id"] = opinion["data-entry-id"]
+        single_opinion["rcmd"] = True if single_opinion["rcm"] == "Polecam" else False if single_opinion["rcmd"] == "Nie polecam" else None 
+        single_opinion["score"] = float(single_opinion["score"].split("/")[0].replace(",","."))
+        single_opinion["useful_for"] = int(single_opinion["useful_for"])
+        single_opinion["useless_for"] = int(single_opinion["useless_for"])
+        single_opinion["content_en"] = translator.translate(single_opinion["content"])
+        
+        
+        
         all_opinions.append(single_opinion)
         try:
             url = "https://www.ceneo.pl" +get_element(page_dom,"a.pagination__next","href")
