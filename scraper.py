@@ -1,20 +1,34 @@
 import json
-from turtle import pos
+from turtle import home, pos
 from typing import Type
 import requests
 from bs4 import BeautifulSoup
-from translate import Translator
+from googletrans import Translator
+import time 
+import logging
 
 def get_element(parent, selector, attribute=None, return_list= False):
     try:
         if return_list:
-            return [item.text.strip() for item in opinion.select(selector)]
+            return ".".join([item.text.strip() for item in opinion.select(selector)])
         
         if attribute:
             return parent.select_one(selector)[attribute]
-        return parent.select_one(selector).text.strip()    
+        else:
+            return parent.select_one(selector).text.strip()    
     except (AttributeError, TypeError):
         return None  
+
+
+def translate(text):
+    global src
+    global dest
+    global translator
+    try:
+        time.sleep(5)
+        return translator.translate(text, src=src, dest=dest).text
+    except AttributeError as e:
+        logging.error("Translate: " + e)
 
 opinion_elements = {
             "author":      ["span.user-post__author-name"],
@@ -29,9 +43,9 @@ opinion_elements = {
             "useless":     ["button.vote-no > span"]
 }            
 
-to_lang = "en"
-from_lang = "pl"
-translator = Translator(to_lang=to_lang,from_lang=from_lang)
+dest = "en"
+src = "pl"
+translator = Translator()
 
 product_id = input("Please enter a product's id: ")
 
@@ -51,11 +65,13 @@ while (url):
             for key, values in opinion_elements.items()
         }
         single_opinion["opinion_id"] = opinion["data-entry-id"]
-        single_opinion["rcmd"] = True if single_opinion["rcm"] == "Polecam" else False if single_opinion["rcmd"] == "Nie polecam" else None 
+        single_opinion["rcmd"] = True if single_opinion["rcmd"] == "Polecam" else False if single_opinion["rcmd"] == "Nie polecam" else None 
         single_opinion["score"] = float(single_opinion["score"].split("/")[0].replace(",","."))
-        single_opinion["useful_for"] = int(single_opinion["useful_for"])
-        single_opinion["useless_for"] = int(single_opinion["useless_for"])
-        single_opinion["content_en"] = translator.translate(single_opinion["content"])
+        single_opinion["usefull"] = int(single_opinion["usefull"])
+        single_opinion["useless"] = int(single_opinion["useless"])
+        single_opinion["content_en"] = translate(single_opinion["content"])
+        single_opinion['pros_en'] = [translate(pros) for pros in single_opinion['pros']]
+        single_opinion['cons_en'] = [translate(cons) for cons in single_opinion['cons']]
         
         
         
