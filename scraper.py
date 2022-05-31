@@ -20,15 +20,17 @@ def get_element(parent, selector, attribute=None, return_list= False):
         return None  
 
 
-def translate(text):
-    global src
-    global dest
-    global translator
+
+dest = "en"
+src = "pl"
+translator = Translator()
+
+def translate(text, src=src, dest=dest):
     try:
-        time.sleep(5)
         return translator.translate(text, src=src, dest=dest).text
-    except AttributeError as e:
-        logging.error("Translate: " + e)
+    except (AttributeError, TypeError):
+        print("Error")
+        return ""
 
 opinion_elements = {
             "author":      ["span.user-post__author-name"],
@@ -43,9 +45,7 @@ opinion_elements = {
             "useless":     ["button.vote-no > span"]
 }            
 
-dest = "en"
-src = "pl"
-translator = Translator()
+
 
 product_id = input("Please enter a product's id: ")
 
@@ -69,9 +69,9 @@ while (url):
         single_opinion["score"] = float(single_opinion["score"].split("/")[0].replace(",","."))
         single_opinion["usefull"] = int(single_opinion["usefull"])
         single_opinion["useless"] = int(single_opinion["useless"])
-        single_opinion["content_en"] = translate(single_opinion["content"])
-        single_opinion['pros_en'] = [translate(pros) for pros in single_opinion['pros']]
-        single_opinion['cons_en'] = [translate(cons) for cons in single_opinion['cons']]
+        single_opinion["content_en"] = translate(single_opinion["content"]) if single_opinion["content"] else ""
+        single_opinion['pros_en'] = translate(single_opinion["pros"]) if single_opinion["content"] else ""
+        single_opinion['cons_en'] = translate(single_opinion["cons"]) if single_opinion["content"] else ""
         
         
         
