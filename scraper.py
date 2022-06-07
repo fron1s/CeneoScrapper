@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from googletrans import Translator
 import time 
 import logging
+import os 
 
 def get_element(parent, selector, attribute=None, return_list= False):
     try:
@@ -80,6 +81,9 @@ while (url):
             url = "https://www.ceneo.pl" +get_element(page_dom,"a.pagination__next","href")
         except TypeError:
             url = None
+
+if not os.path.exists("opinions"):
+    os.makedirs("opinions")
 
 with open(f"opinions/{product_id}.json","w", encoding="UTF-8") as f:
     json.dump(all_opinions, f, indent=4, ensure_ascii=False)
